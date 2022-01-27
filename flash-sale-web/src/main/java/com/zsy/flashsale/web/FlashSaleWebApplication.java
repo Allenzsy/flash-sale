@@ -1,5 +1,6 @@
 package com.zsy.flashsale.web;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,7 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @Date 2022/1/27 1:02
  * @Description:
  */
-@SpringBootApplication
+@MapperScan("com.zsy.flashsale.**.mapper")
+@SpringBootApplication(scanBasePackages = "com.zsy.flashsale")
 public class FlashSaleWebApplication {
     public static void main(String[] args) {
         SpringApplication.run(FlashSaleWebApplication.class);

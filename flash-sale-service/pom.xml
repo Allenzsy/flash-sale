@@ -11,5 +11,11 @@
 
     <artifactId>flash-sale-service</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.zsy.flashsale</groupId>
+            <artifactId>flash-sale-dao</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

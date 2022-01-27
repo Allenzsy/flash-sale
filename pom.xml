@@ -13,7 +13,7 @@
     <artifactId>flash-sale</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <!-- 继承说明：这里继承Spring Boot提供的父工程 -->
+    <!-- 继承说明：这里继承 SpringBoot 提供的父工程，后续子模块引入父工程有的都不用写版本号-->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -31,6 +31,38 @@
     <!-- 属性说明 -->
     <properties>
         <java.version>1.8</java.version>
-        <project.version>1.0.0-SNAPSHOT</project.version>
+        <flash-sale.version>1.0.0-SNAPSHOT</flash-sale.version>
     </properties>
+
+    <!-- 依赖管理：这里统一管理依赖的版本号 -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.zsy.flashsale</groupId>
+                <artifactId>flash-sale-dao</artifactId>
+                <version>${flash-sale.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zsy.flashsale</groupId>
+                <artifactId>flash-sale-service</artifactId>
+                <version>${flash-sale.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zsy.flashsale</groupId>
+                <artifactId>flash-sale-web</artifactId>
+                <version>${flash-sale.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>2.2.1</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/com.alibaba/druid-spring-boot-starter -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>1.2.8</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
