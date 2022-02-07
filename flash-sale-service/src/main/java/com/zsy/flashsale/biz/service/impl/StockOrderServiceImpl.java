@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Date;
 
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
+
 @Service
 public class StockOrderServiceImpl implements StockOrderService {
 
@@ -21,7 +23,7 @@ public class StockOrderServiceImpl implements StockOrderService {
     StockCasService stockCasService;
 
     @Override
-    @Transactional
+    @Transactional(isolation = SERIALIZABLE)
     public int createOrderUnsafe(Integer sid) throws Exception {
         StockCasDo stockCasDo = stockCasService.saleStock(sid);
         StockOrderDo stockOrderDo = new StockOrderDo(stockCasDo.getId(), stockCasDo.getName(), new Date());
