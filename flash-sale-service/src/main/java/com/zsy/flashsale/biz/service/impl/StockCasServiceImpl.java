@@ -3,7 +3,6 @@ package com.zsy.flashsale.biz.service.impl;
 import com.zsy.flashsale.biz.service.StockCasService;
 import com.zsy.flashsale.dao.mapper.StockCasMapper;
 import com.zsy.flashsale.dao.po.StockCasDo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -19,8 +18,18 @@ public class StockCasServiceImpl implements StockCasService {
     StockCasMapper stockCasMapper;
 
     @Override
-    public int saleStock(StockCasDo stock) {
-        int res = stockCasMapper.updateById(stock.getId());
-        return res;
+    public StockCasDo saleStock(Integer id) throws Exception {
+        StockCasDo stockCasDo = checkStock(id);
+        int res = stockCasMapper.updateById(id);
+        return stockCasDo;
     }
+
+    private StockCasDo checkStock(Integer id) {
+        StockCasDo stockCasDo = stockCasMapper.selectById(id);
+        if (stockCasDo.getCount() <= 0) {
+            throw new RuntimeException("sale out");
+        }
+        return stockCasDo;
+    }
+
 }
