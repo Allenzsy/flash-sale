@@ -14,7 +14,12 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface StockCasMapper {
 
-    @Update("update stock_cas set count = count-1 where id = #{id}")
+    /**
+     * 不使用乐观锁
+     * @param id
+     * @return
+     */
+    @Update("UPDATE stock_cas set count = count-1 WHERE id = #{id}")
     int updateById(@Param("id") Integer id);
 
     @Select("SELECT s.id, s.`name`, s.count, s.version FROM stock_cas s WHERE s.id = #{id}")
