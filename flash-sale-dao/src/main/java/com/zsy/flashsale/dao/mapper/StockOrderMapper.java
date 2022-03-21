@@ -7,9 +7,9 @@ import org.apache.ibatis.annotations.Options;
 
 @Mapper
 public interface StockOrderMapper {
+
     @Insert({"insert into stock_order(sid, name, create_time) " +
              "values(#{sid}, #{name}, #{createTime, jdbcType=TIMESTAMP})" })
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn="id")
     int insertOrder(StockOrderDo stockOrderDo);
-
 }

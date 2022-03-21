@@ -5,7 +5,7 @@ package com.zsy.flashsale.dao.po;
  * @Date 2022/1/27 23:30
  * @Description:
  */
-public class StockCasDo {
+public class StockDo {
     private Integer id;
     private String name;
     private Integer count;
@@ -35,11 +35,12 @@ public class StockCasDo {
         this.count = count;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
+    @Override
+    public String toString() {
+        return "StockDo{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", count=" + count +
+                '}';
     }
 }

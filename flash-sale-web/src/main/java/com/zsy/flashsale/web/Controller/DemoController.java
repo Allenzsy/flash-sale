@@ -1,7 +1,9 @@
 package com.zsy.flashsale.web.Controller;
 
-import com.zsy.flashsale.biz.service.StockCasService;
+import com.zsy.flashsale.biz.service.StockService;
 import com.zsy.flashsale.biz.service.StockOrderService;
+import com.zsy.flashsale.dao.po.StockDo;
+import com.zsy.flashsale.dao.po.StockOrderDo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DemoController {
 
     @Autowired
-    StockCasService stockCasService;
+    StockService stockService;
     @Autowired
     StockOrderService stockOrderService;
 
@@ -31,7 +33,7 @@ public class DemoController {
     @RequestMapping("/sale/{id}")
     public String sale(@PathVariable Integer id) {
         try {
-            stockCasService.saleStock(id);
+            stockService.saleStockUnsafe(id);
         } catch (Exception e) {
             e.printStackTrace();
             return "sale out";
@@ -39,17 +41,53 @@ public class DemoController {
         return "sale success...";
     }
 
-    @RequestMapping("/order/{id}")
-    public String order(@PathVariable Integer id) {
-
+    @RequestMapping("/orderV1/{id}/{method}")
+    public String orderV1(@PathVariable Integer id,
+                        @PathVariable String method) {
         int res = 0;
         try {
-            res = stockOrderService.createOrderUnsafe(id);
+            if("unsafe".equals(method)) {
+                res = stockOrderService.createOrderUnsafe(id);
+            } else if("xlock".equals(method)) {
+                res = stockOrderService.createOrderXLock(id);
+            } else if("caslock".equals(method)) {
+                res = stockOrderService.createOrderCasLock(id);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            return "sale out";
         }
-        return "order " + res + " success...";
+        return method + res;
     }
+
+
+    @RequestMapping("/orderV2/{method}/{id}")
+    public String orderV2(@PathVariable Integer id,
+                          @PathVariable String method) {
+        int res = 0;
+        try {
+            if("unsafe".equals(method)) {
+                StockDo stock = stockService.getStock(id);
+                if (stock == null || stock.getCount() <= 0)
+                    return "已售罄，商品"+stock.getName()+"库存为0";
+                res = stockOrderService.createOrderUnsafe(stock);
+
+            } else if("caslock".equals(method)) {
+                StockDo stock = stockService.getStock(id);
+                if (stock == null || stock.getCount() <= 0)
+                    return "已售罄，商品"+stock.getName()+"库存为0";
+                res = stockOrderService.createOrderCasLock(stock);
+
+            } else if("xlock".equals(method)) {
+                res = stockOrderService.createOrderByXLock(id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(res == 0)
+            return "使用" + method + "下单失败";
+        return "使用" + method + "下单成功";
+
+    }
+
 
 }

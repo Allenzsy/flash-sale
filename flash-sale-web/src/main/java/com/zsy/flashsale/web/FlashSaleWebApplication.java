@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @Date 2022/1/27 1:02
  * @Description:
  */
-@MapperScan("com.zsy.flashsale.**.mapper")
+@MapperScan("com.zsy.flashsale.*.mapper")
 @SpringBootApplication(scanBasePackages = "com.zsy.flashsale")
 public class FlashSaleWebApplication {
     public static void main(String[] args) {
