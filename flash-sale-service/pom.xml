@@ -12,9 +12,15 @@
     <artifactId>flash-sale-service</artifactId>
 
     <dependencies>
+
         <dependency>
             <groupId>com.zsy.flashsale</groupId>
             <artifactId>flash-sale-dao</artifactId>
+        </dependency>
+        <!-- 官方集成了 lettuce 也可以单独引入-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
     </dependencies>
 

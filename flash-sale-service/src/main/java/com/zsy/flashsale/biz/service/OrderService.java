@@ -1,15 +1,15 @@
 package com.zsy.flashsale.biz.service;
 
-import com.zsy.flashsale.dao.po.StockDo;
+import com.zsy.flashsale.dao.po.ProductDo;
 
-public interface StockOrderService {
+public interface OrderService {
 
     int createOrderUnsafe(Integer id);
     int createOrderCasLock(Integer id);
     int createOrderXLock(Integer id);
 
-    int createOrderUnsafe(StockDo stock);
-    int createOrderCasLock(StockDo stock);
+    int createOrderUnsafe(ProductDo product);
+    int createOrderCasLock(ProductDo product);
     int createOrderByXLock(Integer id);
 
 

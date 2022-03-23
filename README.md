@@ -14,15 +14,13 @@
 
 ```mysql
 -- ----------------------------
--- Table structure for stock_CAS
+-- Table structure for product
 -- ----------------------------
-DROP TABLE IF EXISTS `stock_CAS`;
-CREATE TABLE `stock_CAS` (
-  `id`      int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
-  `name`    varchar(50)      NOT NULL DEFAULT ''     COMMENT '名称',
-  `count`   int(11)          NOT NULL                COMMENT '库存',
-  `sale`    int(11)          NOT NULL 		           COMMENT '已售',
-  `version` int(11)          NOT NULL  		           COMMENT '乐观锁，版本号',
+DROP TABLE IF EXISTS `product`;
+CREATE TABLE `product` (
+  `id` 		int(11) unsigned	NOT NULL AUTO_INCREMENT	COMMENT '自增id',
+  `name` 	varchar(50) 		NOT NULL DEFAULT '' 	COMMENT '名称',
+  `count` 	int(11) 			NOT NULL 				COMMENT '库存, 乐观锁可复用此字段避免新增版本号字段',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通过乐观锁解决超卖问题';
 ```
@@ -31,16 +29,16 @@ CREATE TABLE `stock_CAS` (
 
 ```mysql
 -- ----------------------------
--- Table structure for stock_order
+-- Table structure for order
 -- ----------------------------
-DROP TABLE IF EXISTS `stock_order`;
-CREATE TABLE `stock_order` (
+DROP TABLE IF EXISTS `order`;
+CREATE TABLE `order` (
   `id`          int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `sid`         int(11)          NOT NULL COMMENT '库存ID',
+  `pid`         int(11)          NOT NULL COMMENT '商品ID',
   `name`        varchar(30)      NOT NULL DEFAULT '' COMMENT '商品名称',
   `create_time` timestamp        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
 
@@ -53,15 +51,15 @@ CREATE TABLE `stock_order` (
 @Transactional
 void createOrder(id) {
 	// 1. 查询并校验库存
-	SELECT s.id, s.`name`, s.stock FROM stock_cas s WHERE s.id = #{id}
+	SELECT s.id, s.`name`, s.stock FROM product s WHERE s.id = #{id}
 	if(stock <= 0 ) {
 		throw new RuntimeException("sale out");
 	}
 	// 2. 更新库存
-	UPDATE stock_cas set count = count-1 WHERE id = #{id}
+	UPDATE product set count = count-1 WHERE id = #{id}
     // 3. 创建订单
-    insert into stock_order(sid, name, create_time) 
-                values(#{sid}, #{name}, #{createTime, jdbcType=TIMESTAMP})
+    insert into order(pid, name, create_time) 
+                values(#{pid}, #{name}, #{createTime, jdbcType=TIMESTAMP})
 }
 ```
 

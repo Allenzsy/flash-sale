@@ -1,13 +1,15 @@
 package com.zsy.flashsale.web.Controller;
 
-import com.zsy.flashsale.biz.service.StockService;
-import com.zsy.flashsale.biz.service.StockOrderService;
-import com.zsy.flashsale.dao.po.StockDo;
-import com.zsy.flashsale.dao.po.StockOrderDo;
+import com.zsy.flashsale.biz.service.ProductService;
+import com.zsy.flashsale.biz.service.OrderService;
+import com.zsy.flashsale.dao.po.ProductDo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author Allenzsy
@@ -19,9 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class DemoController {
 
     @Autowired
-    StockService stockService;
+    ProductService productService;
     @Autowired
-    StockOrderService stockOrderService;
+    OrderService orderService;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
 
     @RequestMapping("/test")
@@ -33,7 +37,7 @@ public class DemoController {
     @RequestMapping("/sale/{id}")
     public String sale(@PathVariable Integer id) {
         try {
-            stockService.saleStockUnsafe(id);
+            productService.saleProductUnsafe(id);
         } catch (Exception e) {
             e.printStackTrace();
             return "sale out";
@@ -47,11 +51,11 @@ public class DemoController {
         int res = 0;
         try {
             if("unsafe".equals(method)) {
-                res = stockOrderService.createOrderUnsafe(id);
+                res = orderService.createOrderUnsafe(id);
             } else if("xlock".equals(method)) {
-                res = stockOrderService.createOrderXLock(id);
+                res = orderService.createOrderXLock(id);
             } else if("caslock".equals(method)) {
-                res = stockOrderService.createOrderCasLock(id);
+                res = orderService.createOrderCasLock(id);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -66,19 +70,19 @@ public class DemoController {
         int res = 0;
         try {
             if("unsafe".equals(method)) {
-                StockDo stock = stockService.getStock(id);
-                if (stock == null || stock.getCount() <= 0)
-                    return "已售罄，商品"+stock.getName()+"库存为0";
-                res = stockOrderService.createOrderUnsafe(stock);
+                ProductDo product = productService.getProduct(id);
+                if (product == null || product.getCount() <= 0)
+                    return "已售罄，商品"+product.getName()+"库存为0";
+                res = orderService.createOrderUnsafe(product);
 
             } else if("caslock".equals(method)) {
-                StockDo stock = stockService.getStock(id);
-                if (stock == null || stock.getCount() <= 0)
-                    return "已售罄，商品"+stock.getName()+"库存为0";
-                res = stockOrderService.createOrderCasLock(stock);
+                ProductDo product = productService.getProduct(id);
+                if (product == null || product.getCount() <= 0)
+                    return "已售罄，商品"+product.getName()+"库存为0";
+                res = orderService.createOrderCasLock(product);
 
             } else if("xlock".equals(method)) {
-                res = stockOrderService.createOrderByXLock(id);
+                res = orderService.createOrderByXLock(id);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,6 +91,14 @@ public class DemoController {
             return "使用" + method + "下单失败";
         return "使用" + method + "下单成功";
 
+    }
+    @RequestMapping("/redis/{key}/{val}")
+    public String testRedis(@PathVariable String key,
+                            @PathVariable String val) {
+        stringRedisTemplate.opsForValue().set(key, val, 5, TimeUnit.SECONDS);
+        productService.getProductWithCache(1);
+
+        return "设置成功";
     }
 
 

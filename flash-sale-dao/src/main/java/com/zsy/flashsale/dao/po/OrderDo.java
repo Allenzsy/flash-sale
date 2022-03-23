@@ -2,18 +2,18 @@ package com.zsy.flashsale.dao.po;
 
 import java.util.Date;
 
-public class StockOrderDo {
+public class OrderDo {
 
     private Integer id;
-    private Integer sid;
+    private Integer pid;
     private String name;
     private Date createTime;
 
-    public StockOrderDo() {
+    public OrderDo() {
     }
 
-    public StockOrderDo(Integer sid, String name, Date createTime) {
-        this.sid = sid;
+    public OrderDo(Integer pid, String name, Date createTime) {
+        this.pid = pid;
         this.name = name;
         this.createTime = createTime;
     }
@@ -26,12 +26,12 @@ public class StockOrderDo {
         this.id = id;
     }
 
-    public Integer getSid() {
-        return sid;
+    public Integer getPid() {
+        return pid;
     }
 
-    public void setSid(Integer sid) {
-        this.sid = sid;
+    public void setPid(Integer pid) {
+        this.pid = pid;
     }
 
     public String getName() {
