@@ -5,6 +5,7 @@ import com.zsy.flashsale.biz.service.OrderService;
 import com.zsy.flashsale.dao.mapper.OrderMapper;
 import com.zsy.flashsale.dao.po.ProductDo;
 import com.zsy.flashsale.dao.po.OrderDo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Date;
 
+@Slf4j
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -105,7 +107,7 @@ public class OrderServiceImpl implements OrderService {
         // 通过乐观锁更新库存，没有符合条件的数据 mapper 会返回 0
         int res = productService.saleProductByCasLock(product);
         if (res == 0) {
-            System.out.println(product+"扣库存失败");
+            log.info("CAS扣库存失败，商品: {}", product);
             return 0;
         }
         OrderDo orderDo = new OrderDo(product.getId(), product.getName(), new Date());
@@ -115,22 +117,23 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      *
-     * @param id
+     * @param pid
      * @return
      * @throws Exception
      */
     @Override
     @Transactional
-    public int createOrderByXLock(Integer id) {
+    public int createOrderByXLock(Integer pid) {
         // 通过排他锁，提前锁住要扣库存的数据（变更行）
-        ProductDo product = productService.getProductByXLock(id);
+        ProductDo product = productService.getProductByXLock(pid);
+        log.info("XLock对待变更行加锁，商品: {}", product);
         if (product == null || product.getCount() <= 0) {
-            System.out.println("已售罄，商品"+product.getName()+"库存为0");
-            throw new RuntimeException("已售罄，商品"+product.getName()+"库存为0");
+            log.info("已售罄，商品: {}库存为0", product.getName());
+            throw new RuntimeException("已售罄，商品: "+product.getName()+"库存为0");
         }
-        int res = productService.saleProductByCasLock(product);
+        int res = productService.saleProduct(product);
         if (res == 0) {
-            System.out.println(product+"扣库存失败");
+            log.info("XLock扣库存失败，商品: {}", product);
             return 0;
         }
         OrderDo orderDo = new OrderDo(product.getId(), product.getName(), new Date());
@@ -138,6 +141,13 @@ public class OrderServiceImpl implements OrderService {
         return res;
     }
 
-
-
+    @Override
+    public int createOrderByMQ(Integer pid) {
+        ProductDo product = productService.getProduct(pid);
+        if (product == null || product.getCount() <= 0) {
+            log.info("已售罄，商品{}库存为0", product.getName());
+        }
+        int res = this.createOrderCasLock(product);
+        return res;
+    }
 }

@@ -10,7 +10,8 @@ public interface OrderService {
 
     int createOrderUnsafe(ProductDo product);
     int createOrderCasLock(ProductDo product);
-    int createOrderByXLock(Integer id);
+    int createOrderByXLock(Integer pid);
+    int createOrderByMQ(Integer pid);
 
 
 }

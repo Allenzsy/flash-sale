@@ -12,10 +12,12 @@
     <artifactId>flash-sale-web</artifactId>
 
     <dependencies>
+        <!--项目自身依赖-->
         <dependency>
             <groupId>com.zsy.flashsale</groupId>
             <artifactId>flash-sale-service</artifactId>
         </dependency>
+        <!--可通过 springboot starter 配置的依赖-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -26,10 +28,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
     </dependencies>
 
