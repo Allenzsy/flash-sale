@@ -2,6 +2,7 @@ package com.zsy.flashsale.web.Controller;
 
 import com.zsy.flashsale.biz.service.ProductService;
 import com.zsy.flashsale.biz.service.OrderService;
+import com.zsy.flashsale.biz.service.impl.FileService;
 import com.zsy.flashsale.dao.po.ProductDo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,6 +27,8 @@ public class DemoController {
     OrderService orderService;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    FileService fileService;
 
 
     @RequestMapping("/test")
@@ -99,6 +102,12 @@ public class DemoController {
         productService.getProductWithCache(1);
 
         return "设置成功";
+    }
+
+    @RequestMapping("/export")
+    public String export() {
+        fileService.export();
+        return "导出成功";
     }
 
 
