@@ -23,4 +23,7 @@ public interface OrderMapper {
             @Result(column = "content", property = "content", jdbcType = JdbcType.VARCHAR)
     })
     List<ExportFile> selectPage(int index, int pageSize);
+
+    @Select({"SELECT COUNT(`id`) FROM `order`"})
+    int count();
 }
