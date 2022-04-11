@@ -2,9 +2,9 @@ package com.zsy.flashsale.biz.service.impl;
 
 import com.zsy.flashsale.biz.ExportFileDto;
 import com.zsy.flashsale.biz.service.OrderService;
-import com.zsy.flashsale.biz.task.Consumer;
-import com.zsy.flashsale.biz.task.Producer;
+import com.zsy.flashsale.biz.task.*;
 import com.zsy.flashsale.dao.mapper.OrderMapper;
+import com.zsy.flashsale.dao.mapper.TradeLogMapper;
 import com.zsy.flashsale.dao.po.ExportFile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,10 +16,7 @@ import java.nio.channels.FileChannel.*;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 /**
  * @Author Allenzsy
@@ -33,82 +30,227 @@ public class FileService {
     @Resource
     OrderMapper orderMapper;
 
+    @Resource
+    TradeLogMapper tradeLogMapper;
+
     private static ExecutorService pool = Executors.newFixedThreadPool(2);
+    private static ExecutorService pool2 = Executors.newFixedThreadPool(2);
+    private static ExecutorService pool3 = Executors.newFixedThreadPool(2);
+    private static ExecutorService pool4 = Executors.newFixedThreadPool(2);
+    private static ExecutorService pool5 = Executors.newFixedThreadPool(2);
 
     private LinkedBlockingQueue<ExportFileDto> queue = new LinkedBlockingQueue<>(2);
+    private LinkedBlockingQueue<ExportFileDto> queue2 = new LinkedBlockingQueue<>(2);
+    private LinkedBlockingQueue<ExportFileDto> queue3 = new LinkedBlockingQueue<>(2);
+    private LinkedBlockingQueue<ExportFileDto> queue4 = new LinkedBlockingQueue<>(2);
     /**
      * 当前应写入的启示位置
      */
     private int index;
 
     public void export() {
+        CountDownLatch latch = new CountDownLatch(2);
         FileOutputStream fos = null;
-        RandomAccessFile accessFile = null;
+        FileChannel channel = null;
         RandomAccessFile threadWriteFile = null;
         try {
 
             File orderFile = new File("E:/java/test/orderFile.bin");
             threadWriteFile = new RandomAccessFile(orderFile, "rwd");
-            FileChannel channel = threadWriteFile.getChannel();
+            channel = threadWriteFile.getChannel();
+            queue.clear();
 
             for (int i = 0; i < 2; i++) {
-                pool.execute(new Consumer(queue, channel));
+                pool.execute(new Consumer(queue, channel, latch));
             }
 
-            new Thread(new Producer(queue, orderMapper)).start();
+            // new Thread(new Producer(queue, orderMapper)).start();
+            new Thread(new ProducerSingle(queue, tradeLogMapper, 1000, 997L)).start();
 
-            List<ExportFile> lists = orderMapper.selectPage(0,5);
-            System.out.println(orderMapper.count());
-            File file = new File("E:/java/test/test.bin");
-            File file1 = new File("E:/java/test/test1.bin");
-            accessFile = new RandomAccessFile(file1, "rwd");
-            System.out.println("字节数1："+lists.get(0).getContent().getBytes().length);
-            System.out.println("字节数2："+lists.get(1).getContent().getBytes().length);
-            System.out.println("字节数3："+lists.get(2).getContent().getBytes().length);
-            System.out.println("123好");
-            System.out.println("123好的字符串长度: "+"123好".length());
-            System.out.println("123好的byte数组长度: "+"123好".getBytes(Charset.forName("utf8")).length);
-
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            if (!file1.exists()) {
-                file1.createNewFile();
-            }
-
-            FileChannel fileChannel = accessFile.getChannel();
-            MappedByteBuffer buffer = fileChannel.map(MapMode.READ_WRITE, 0L, 120L);
-            MappedByteBuffer buffer2 = fileChannel.map(MapMode.READ_WRITE, 120L, 180L);
-            buffer.put(lists.get(1).getContent().getBytes());
-            buffer.put(lists.get(3).getContent().getBytes());
-            //buffer.put("\r\n".getBytes());
-            buffer = null;
-            buffer2.put(lists.get(2).getContent().getBytes());
-            //buffer2.put("\r\n".getBytes());
-            buffer2 = null;
-            fileChannel.close();
-
-
-
-            for (ExportFile e: lists) {
-                fos = new FileOutputStream(file, true);
-                fos.write(e.getContent().getBytes());
-                fos.write("\r\n".getBytes());
-                log.info("导出字段为: {}, 长度为: {}", e.getContent(), e.getContent().length());
-            }
+            long stime = System.currentTimeMillis();
+            latch.await();
+            long etime = System.currentTimeMillis();
+            log.info("每次直接写耗时{}毫秒", etime-stime);
             System.gc();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } finally {
             try {
-                if (fos != null) {
-                    fos.close();
-                    fos = null;
+                if (channel != null) {
+                    channel.close();
+                    channel = null;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
+
+    public void export2() {
+        CountDownLatch latch = new CountDownLatch(2);
+        FileOutputStream fos = null;
+        FileChannel channel = null;
+        RandomAccessFile threadWriteFile = null;
+        try {
+
+            File logfile = new File("E:/java/test/logfile.bin");
+            threadWriteFile = new RandomAccessFile(logfile, "rwd");
+            channel = threadWriteFile.getChannel();
+            queue2.clear();
+
+            for (int i = 0; i < 2; i++) {
+                pool2.execute(new ConsumerMmap(queue2, channel, latch));
+            }
+            new Thread(new ProducerSingle(queue2, tradeLogMapper, 1000, 997L)).start();
+
+            long stime = System.currentTimeMillis();
+            latch.await();
+            long etime = System.currentTimeMillis();
+            log.info("先拼接再直接写耗时{}毫秒", etime-stime);
+            System.gc();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (channel != null) {
+                    channel.close();
+                    channel = null;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void export3() {
+        CountDownLatch latch = new CountDownLatch(2);
+        FileOutputStream fos = null;
+        FileChannel channel = null;
+        RandomAccessFile threadWriteFile = null;
+        try {
+
+            File logfile = new File("E:/java/test/logfileChannel.bin");
+            threadWriteFile = new RandomAccessFile(logfile, "rwd");
+            channel = threadWriteFile.getChannel();
+            queue3.clear();
+
+            for (int i = 0; i < 2; i++) {
+                pool3.execute(new ConsumerChannel(queue3, channel, latch));
+            }
+
+            new Thread(new ProducerSingle(queue3, tradeLogMapper, 500, 997L)).start();
+            long stime = System.currentTimeMillis();
+            latch.await();
+            long etime = System.currentTimeMillis();
+            log.info("用filechannel每次直接写入写耗时{}毫秒", etime-stime);
+            System.gc();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (channel != null) {
+                    //channel.
+                    channel.close();
+                    channel = null;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void export4() {
+        CountDownLatch latch = new CountDownLatch(2);
+        FileOutputStream fos = null;
+        FileChannel channel = null;
+        RandomAccessFile threadWriteFile = null;
+        try {
+
+            File logfile = new File("E:/java/test/logfileChannelone.bin");
+            threadWriteFile = new RandomAccessFile(logfile, "rwd");
+            channel = threadWriteFile.getChannel();
+            queue4.clear();
+
+            for (int i = 0; i < 2; i++) {
+                pool4.execute(new ConsumerChannelone(queue4, channel, 997, latch));
+            }
+
+            new Thread(new ProducerSingle(queue4, tradeLogMapper, 1000, 997L)).start();
+            long stime = System.currentTimeMillis();
+            latch.await();
+            long etime = System.currentTimeMillis();
+            log.info("用filechannel用bytebuffer每次缓存写入耗时{}毫秒", etime-stime);
+            System.gc();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (channel != null) {
+                    channel.close();
+                    channel = null;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void onlySearch() {
+        String primaryKey = "";
+        int pageSize = 1000;
+        long cursor = 0L;
+        int resultNum = 0;
+        List<ExportFile> exportFiles = null;
+        long stime = System.currentTimeMillis();
+        do {
+            exportFiles = tradeLogMapper.selectPage(primaryKey, pageSize);
+            if (exportFiles == null || exportFiles.isEmpty()) {
+                break;
+            }
+            resultNum = exportFiles.size();
+            //try {
+                //queue.put(new ExportFileDto(cursor * resultNum * dataLength, resultNum * dataLength, exportFiles));
+                //log.info("生产者线程{}查询回{}条数据",Thread.currentThread().getName(), resultNum);
+                primaryKey = exportFiles.get(resultNum-1).getPrimaryKey();
+                cursor++;
+            //} catch (InterruptedException e) {
+            //    log.info("中断: {}", e);
+            //}
+        } while (resultNum == pageSize );
+
+        long etime = System.currentTimeMillis();
+        log.info("查询完毕耗时{}毫秒", etime-stime);
+    }
+
+
+    public void onlySearchMulti() {
+        // 获取分段数据
+        String begin = "";
+        String mid = "202204x0000005000000";
+        String end = "202204x0000010000000";
+        CountDownLatch latch = new CountDownLatch(2);
+        long stime = System.currentTimeMillis();
+        pool5.execute(new ProducerMulti(queue, tradeLogMapper, 1000, 997L, begin, mid, latch));
+        pool5.execute(new ProducerMulti(queue, tradeLogMapper, 1000, 997L, mid, end, latch));
+        try {
+            latch.await();
+            long etime = System.currentTimeMillis();
+            log.info("多线程查询完毕耗时{}毫秒", etime-stime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
 
 }

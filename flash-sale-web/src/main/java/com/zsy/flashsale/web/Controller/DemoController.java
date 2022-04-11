@@ -110,5 +110,35 @@ public class DemoController {
         return "导出成功";
     }
 
+    @RequestMapping("/export2")
+    public String export2() {
+        fileService.export2();
+        return "导出成功";
+    }
+
+    @RequestMapping("/export3")
+    public String export3() {
+        fileService.export3();
+        return "导出成功";
+    }
+
+    @RequestMapping("/export4")
+    public String export4() {
+        fileService.export4();
+        return "导出成功";
+    }
+
+    @RequestMapping("/onlySearch")
+    public String onlySearch() {
+        fileService.onlySearch();
+        return "导出成功";
+    }
+
+    @RequestMapping("/onlySearch2")
+    public String onlySearch2() {
+        fileService.onlySearchMulti();
+        return "导出成功";
+    }
+
 
 }

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zsy.flashsale.dao.mapper.TradeLogMapper">
+
+    <resultMap id="ExportFileResultMap" type="com.zsy.flashsale.dao.po.ExportFile">
+        <id property="primaryKey" column="nid"/>
+        <id property="content" column="content"/>
+    </resultMap>
+
+    <!-- 导出翻页 -->
+    <select id="selectPage" resultType="ExportFile" resultMap="ExportFileResultMap">
+        SELECT `nid`,
+            CONCAT(
+            RPAD(`nid`,         20,     ' '),
+            RPAD(`transtime`,   14,     ' '),
+            RPAD(`actionname`,  100,    ' '),
+            RPAD(`userid`,      17,     ' '),
+            RPAD(`storecode`,   20,     ' '),
+            RPAD(`bizcode`,     20,     ' '),
+            RPAD(`t1561code`,   20,     ' '),
+            RPAD(`deptcode`,    20,     ' '),
+            RPAD(`usertype`,    2,      ' '),
+            RPAD(`clientip`,    60,     ' '),
+            RPAD(`mac`,         60,     ' '),
+            RPAD(`zoneno`,      100,    ' '),
+            RPAD(`appserverip`, 60,     ' '),
+            RPAD(`dateflag`,    2,      ' '),
+            RPAD(`errormsg`,    400,    ' '),
+            RPAD(`errorcode`,   80,     ' ')) AS content
+        FROM trade_log1kw t
+        WHERE `nid` > #{primaryKey}
+        LIMIT #{pageSize}
+    </select>
+
+    <!-- 导出多线程 -->
+    <select id="selectPagePart" resultType="ExportFile" resultMap="ExportFileResultMap">
+        SELECT `nid`,
+            CONCAT(
+            RPAD(`nid`,         20,     ' '),
+            RPAD(`transtime`,   14,     ' '),
+            RPAD(`actionname`,  100,    ' '),
+            RPAD(`userid`,      17,     ' '),
+            RPAD(`storecode`,   20,     ' '),
+            RPAD(`bizcode`,     20,     ' '),
+            RPAD(`t1561code`,   20,     ' '),
+            RPAD(`deptcode`,    20,     ' '),
+            RPAD(`usertype`,    2,      ' '),
+            RPAD(`clientip`,    60,     ' '),
+            RPAD(`mac`,         60,     ' '),
+            RPAD(`zoneno`,      100,    ' '),
+            RPAD(`appserverip`, 60,     ' '),
+            RPAD(`dateflag`,    2,      ' '),
+            RPAD(`errormsg`,    400,    ' '),
+            RPAD(`errorcode`,   80,     ' ')) AS content
+        FROM trade_log1kw t
+        WHERE `nid` > #{primaryKeyBegin} AND `nid` &lt;= #{primaryKeyEnd}
+        LIMIT #{pageSize}
+    </select>
+
+</mapper>

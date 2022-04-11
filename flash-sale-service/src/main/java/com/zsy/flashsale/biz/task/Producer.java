@@ -16,6 +16,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Slf4j
 public class Producer implements Runnable{
 
+    public static final ExportFileDto POISON_PILL = new ExportFileDto(-1L, -1L, null);
+
     LinkedBlockingQueue<ExportFileDto> queue;
 
     OrderMapper orderMapper;
@@ -34,6 +36,8 @@ public class Producer implements Runnable{
                 queue.put(new ExportFileDto(i * pageSize * dataLength, pageSize * dataLength, exportFiles));
                 log.info("生产者线程{}查询回{}条数据",Thread.currentThread().getName(), exportFiles.size());
             }
+            queue.put(POISON_PILL);
+            log.info("数据查询完毕，生产者线程{}放入毒丸", Thread.currentThread().getName());
         } catch (InterruptedException e) {
             log.info("中断: {}", e);
         }

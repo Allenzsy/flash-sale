@@ -1,27 +1,24 @@
 package com.zsy.flashsale.biz.task;
 
-
 import com.zsy.flashsale.biz.ExportFileDto;
 import com.zsy.flashsale.dao.po.ExportFile;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @Author Allenzsy
- * @Date 2022/4/2 0:55
+ * @Date 2022/4/10 13:47
  * @Description:
  */
 @Slf4j
-public class Consumer implements Runnable{
+public class ConsumerChannel implements Runnable {
 
     LinkedBlockingQueue<ExportFileDto> queue;
 
@@ -40,12 +37,14 @@ public class Consumer implements Runnable{
                     queue.put(Producer.POISON_PILL);
                     break;
                 }
-                MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, fileDto.getIndex(), fileDto.getLength());
+                //MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, fileDto.getIndex(), fileDto.getLength());
                 List<ExportFile> list = fileDto.getResultSet();
+                StringBuilder contents = new StringBuilder();
                 for (ExportFile e : list) {
-                    buffer.put(e.getContent().getBytes());
-                    buffer.put("\r\n".getBytes());
+                    contents.append(e.getContent());
+                    contents.append("\r\n");
                 }
+                fileChannel.write(ByteBuffer.wrap(contents.toString().getBytes()), fileDto.getIndex());
                 //log.info("消费者线程{}将{}条数据写入文件", th.getName(), list.size());
             }
         } catch (InterruptedException e) {
@@ -58,7 +57,7 @@ public class Consumer implements Runnable{
         }
     }
 
-    public Consumer(LinkedBlockingQueue<ExportFileDto> queue, FileChannel fileChannel, CountDownLatch latch) {
+    public ConsumerChannel(LinkedBlockingQueue<ExportFileDto> queue, FileChannel fileChannel, CountDownLatch latch) {
         this.queue = queue;
         this.fileChannel = fileChannel;
         this.latch = latch;
